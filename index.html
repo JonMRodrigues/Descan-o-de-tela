@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>DESCANÇO DE TELA</title>
+<style>
+*{box-sizing:border-box;}
+body{
+    margin:0;
+    overflow:hidden;
+    font-family:Tahoma,Verdana,Arial,sans-serif;
+    background:
+        radial-gradient(ellipse 120% 40% at 30% 100%, #4f9a2c 0%, #3d8a1f 55%, transparent 56%),
+        radial-gradient(ellipse 100% 35% at 90% 105%, #62b13a 0%, #4a9a26 55%, transparent 56%),
+        linear-gradient(#2f6fd6 0%, #6aa8f0 55%, #bfe0ff 100%);
+    background-attachment:fixed;
+    min-height:100vh;
+}
+
+/* letras em bolhas de sabão */
+.letra{
+    position:absolute;
+    left:0;
+    top:0;
+    will-change:transform;
+    width:110px;
+    height:110px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:68px;
+    font-weight:bold;
+    font-family:Tahoma,Verdana,Arial,sans-serif;
+    color:#0a3c9e;
+    text-shadow:0 0 4px #fff,0 0 4px #fff,1px 1px 0 #fff;
+    background:radial-gradient(circle at 50% 50%,
+        rgba(255,255,255,0.06) 0%,
+        rgba(160,210,255,0.16) 62%,
+        rgba(255,150,225,0.28) 82%,
+        rgba(120,255,225,0.38) 93%,
+        rgba(255,255,255,0.65) 100%);
+    border:1.5px solid rgba(255,255,255,0.75);
+    box-shadow:0 0 10px rgba(255,255,255,0.35), inset 0 0 14px rgba(255,255,255,0.25);
+    z-index:1;
+}
+.letra::before{
+    content:"";
+    position:absolute;
+    top:14%;
+    left:20%;
+    width:26%;
+    height:13%;
+    border-radius:50%;
+    background:rgba(255,255,255,0.8);
+    transform:rotate(-40deg);
+}
+
+/* barra de tarefas estilo XP */
+#taskbar{
+    position:fixed;left:0;right:0;bottom:0;height:40px;display:flex;align-items:stretch;
+    background:linear-gradient(#3168d5 0%,#4993e6 8%,#2a69e0 18%,#245edb 50%,#2158d4 90%,#1941a5 100%);
+    border-top:1px solid #0c3fb8;z-index:10;
+}
+#start{
+    display:flex;align-items:center;padding:0 22px 0 14px;
+    font:italic bold 20px Tahoma,Verdana,sans-serif;color:#fff;text-shadow:1px 1px 2px #1a4d12;
+    background:linear-gradient(#5fc34f 0%,#3ea82b 45%,#2f8f1f 100%);
+    border-radius:0 14px 14px 0;box-shadow:inset 0 1px 1px rgba(255,255,255,.5),2px 0 4px rgba(0,0,0,.4);
+}
+#tasks{flex:1;display:flex;align-items:center;padding:0 8px;}
+.task{
+    height:28px;min-width:160px;display:flex;align-items:center;padding:0 12px;
+    color:#fff;font-size:13px;text-shadow:1px 1px 1px #0a2a80;
+    background:linear-gradient(#1f4fb3,#2a63d6);border:1px solid #0c3fb8;border-radius:4px;
+    box-shadow:inset 0 0 6px rgba(0,0,40,.5);
+}
+#tray{
+    width:90px;
+    background:linear-gradient(#0f8ae8 0%,#1a9cf0 15%,#0e84e0 60%,#0a6fc9 100%);
+    border-left:1px solid #0a3fa0;box-shadow:inset 1px 0 2px rgba(255,255,255,.4);
+}
+</style>
+</head>
+<body>
+
+<div class="letra">J</div>
+<div class="letra">O</div>
+<div class="letra">N</div>
+<div class="letra">A</div>
+<div class="letra">T</div>
+<div class="letra">H</div>
+<div class="letra">A</div>
+<div class="letra">N</div>
+
+<div id="taskbar">
+    <div id="start">iniciar</div>
+    <div id="tasks"><div class="task">DESCANÇO DE TELA</div></div>
+    <div id="tray"></div>
+</div>
+
+<script>
+const letras = document.querySelectorAll('.letra');
+
+const itens = [...letras].map(l => ({
+    el:l,
+    x:Math.random()*800,
+    y:Math.random()*400,
+    dx:(Math.random()*1.5)+0.7,
+    dy:(Math.random()*1.5)+0.7
+}));
+
+const TAM = 110;
+
+function mover(){
+
+    const maxX = window.innerWidth - TAM;
+    const maxY = window.innerHeight - 150;
+
+    // movimento + paredes (reposiciona dentro da tela, sem ficar preso)
+    itens.forEach(a=>{
+        a.x += a.dx;
+        a.y += a.dy;
+
+        if(a.x < 0){ a.x = 0; a.dx = Math.abs(a.dx); }
+        if(a.x > maxX){ a.x = maxX; a.dx = -Math.abs(a.dx); }
+        if(a.y < 0){ a.y = 0; a.dy = Math.abs(a.dy); }
+        if(a.y > maxY){ a.y = maxY; a.dy = -Math.abs(a.dy); }
+    });
+
+    // colisão entre letras: separa e troca a velocidade (sem tremer)
+    for(let i=0;i<itens.length;i++){
+        for(let j=i+1;j<itens.length;j++){
+
+            let a = itens[i];
+            let b = itens[j];
+
+            let dx = b.x-a.x;
+            let dy = b.y-a.y;
+            let d = Math.sqrt(dx*dx+dy*dy);
+
+            if(d < TAM){
+                if(d === 0){ dx = 1; dy = 0; d = 1; }
+
+                const nx = dx/d;
+                const ny = dy/d;
+                const sobra = (TAM - d)/2;
+
+                a.x -= nx*sobra;
+                a.y -= ny*sobra;
+                b.x += nx*sobra;
+                b.y += ny*sobra;
+
+                const rv = (b.dx-a.dx)*nx + (b.dy-a.dy)*ny;
+
+                if(rv < 0){
+                    a.dx += rv*nx;
+                    a.dy += rv*ny;
+                    b.dx -= rv*nx;
+                    b.dy -= rv*ny;
+                }
+            }
+        }
+    }
+
+    // desenha (transform é mais suave que left/top)
+    itens.forEach(a=>{
+        a.el.style.transform = "translate(" + a.x + "px," + a.y + "px)";
+    });
+
+    requestAnimationFrame(mover);
+}
+
+mover();
+</script>
+
+</body>
+</html>
